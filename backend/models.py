@@ -1,5 +1,5 @@
 from sqlalchemy import String, ForeignKey, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 from datetime import datetime
 
@@ -20,6 +20,8 @@ class Meal(Base):
     meal_type: Mapped[str] = mapped_column(String(50))
     date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    entries: Mapped[list["MealEntry"]] = relationship(back_populates="meal")
+
 
 class MealEntry(Base):
     __tablename__ = "meal_entries"
@@ -28,3 +30,6 @@ class MealEntry(Base):
     meal_id: Mapped[int] = mapped_column(ForeignKey("meals.id"))
     food_id: Mapped[int] = mapped_column(ForeignKey("foods.id"))
     quantity: Mapped[float] = mapped_column(default=1.0)
+
+    meal: Mapped["Meal"] = relationship(back_populates="entries")
+    food: Mapped["Food"] = relationship()

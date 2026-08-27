@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import models
@@ -31,9 +31,8 @@ def food_create(food: schemas.FoodCreate, db: Session = Depends(get_db)):
     return new_food
 
 
-@app.post("/meals")
+@app.post("/meals", response_model=schemas.MealOut)
 def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
-    # 1. create and save the Meal (add, commit, refresh)
     new_meal = models.Meal(
         meal_type = meal.meal_type
     )
@@ -42,7 +41,6 @@ def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_meal)
     
-    # 2. loop through meal.items, create a MealEntry for each, add() each (don't commit yet)
     for item in meal.items:
         new_entry = models.MealEntry(
             meal_id = new_meal.id,
@@ -50,15 +48,20 @@ def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
             quantity = item.quantity
         )
         db.add(new_entry)
-    
-    # 3. commit once, after the loop
     db.commit()
-    
-    # 4. return something
+
     return new_meal
 
 
-@app.get("/meal-entries")
+@app.get("/meal-entries", response_model=list[schemas.MealEntryOut])
 def get_meal_entries(db: Session = Depends(get_db)):
     meals = db.query(models.MealEntry).all()
     return meals
+
+
+@app.get("/meals/{meal_id}", response_model=schemas.MealOut)
+def get_meal(meal_id: int, db: Session = Depends(get_db)):
+    meal = db.query(models.Meal).filter(models.Meal.id == meal_id).first()
+    if meal is None:
+        raise HTTPException(status_code=404, detail="Meal not found")
+    return meal
