@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 class FoodCreate(BaseModel):
     # fields a client sends when creating a food
@@ -21,3 +22,13 @@ class FoodOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MealEntryCreate(BaseModel):
+    food_id: int
+    quantity: float
+    
+
+class MealCreate(BaseModel):
+    meal_type: str
+    items: list[MealEntryCreate]
+    
