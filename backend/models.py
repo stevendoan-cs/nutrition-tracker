@@ -1,7 +1,11 @@
 from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 class Food(Base):
     __tablename__ = "foods"
@@ -18,7 +22,7 @@ class Meal(Base):
     __tablename__ = "meals"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     meal_type: Mapped[str] = mapped_column(String(50))
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    date: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
     entries: Mapped[list["MealEntry"]] = relationship(back_populates="meal")
 

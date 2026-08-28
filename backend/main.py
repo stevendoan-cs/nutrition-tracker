@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 from database import engine, get_db
+from datetime import datetime, timezone, timedelta
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -65,3 +66,38 @@ def get_meal(meal_id: int, db: Session = Depends(get_db)):
     if meal is None:
         raise HTTPException(status_code=404, detail="Meal not found")
     return meal
+
+def calculate_nutrition_totals(start_date, db: Session):
+    meals = db.query(models.Meal).filter(models.Meal.date >= start_date).all()
+    
+    total_calories = 0
+    total_protein = 0
+    total_carbs = 0
+    total_fat = 0
+
+    for meal in meals:
+        for entry in meal.entries:
+            total_calories += entry.quantity * entry.food.calories
+            total_protein += entry.quantity * entry.food.protein
+            total_carbs += entry.quantity * entry.food.carbs
+            total_fat += entry.quantity * entry.food.fat
+
+    
+    return {
+        "calories": total_calories,
+        "protein": total_protein,
+        "carbs": total_carbs,
+        "fat": total_fat,
+    }
+
+
+@app.get("/stats/today")
+def get_today_stats(db: Session = Depends(get_db)):
+    today = datetime.now(timezone.utc).date()
+    return calculate_nutrition_totals(today, db)
+
+@app.get("/stats/week")
+def get_week_stats(db: Session = Depends(get_db)):
+    today = datetime.now(timezone.utc).date()
+    last_week = today - timedelta(weeks=1)
+    return calculate_nutrition_totals(last_week, db)
