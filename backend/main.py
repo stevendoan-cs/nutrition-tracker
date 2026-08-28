@@ -5,10 +5,18 @@ import models
 import schemas
 from database import engine, get_db
 from datetime import datetime, timezone, timedelta
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/foods", response_model=list[schemas.FoodOut])
 def get_foods(db: Session = Depends(get_db)):
