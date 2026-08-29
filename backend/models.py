@@ -24,12 +24,11 @@ class Meal(Base):
     meal_type: Mapped[str] = mapped_column(String(50))
     date: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
-    entries: Mapped[list["MealEntry"]] = relationship(back_populates="meal")
+    entries: Mapped[list["MealEntry"]] = relationship(back_populates="meal", cascade="all, delete-orphan")
 
 
 class MealEntry(Base):
     __tablename__ = "meal_entries"
-
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     meal_id: Mapped[int] = mapped_column(ForeignKey("meals.id"))
     food_id: Mapped[int] = mapped_column(ForeignKey("foods.id"))

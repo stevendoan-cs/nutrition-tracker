@@ -32,20 +32,16 @@ def food_create(food: schemas.FoodCreate, db: Session = Depends(get_db)):
         carbs = food.carbs,
         fat = food.fat,
     )
-
     db.add(new_food)
     db.commit()
     db.refresh(new_food)
-
     return new_food
-
 
 @app.post("/meals", response_model=schemas.MealOut)
 def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
     new_meal = models.Meal(
         meal_type = meal.meal_type
     )
-
     db.add(new_meal)
     db.commit()
     db.refresh(new_meal)
@@ -61,12 +57,10 @@ def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
 
     return new_meal
 
-
 @app.get("/meal-entries", response_model=list[schemas.MealEntryOut])
 def get_meal_entries(db: Session = Depends(get_db)):
     meals = db.query(models.MealEntry).all()
     return meals
-
 
 @app.get("/meals/{meal_id}", response_model=schemas.MealOut)
 def get_meal(meal_id: int, db: Session = Depends(get_db)):
@@ -77,27 +71,22 @@ def get_meal(meal_id: int, db: Session = Depends(get_db)):
 
 def calculate_nutrition_totals(start_date, db: Session):
     meals = db.query(models.Meal).filter(models.Meal.date >= start_date).all()
-    
     total_calories = 0
     total_protein = 0
     total_carbs = 0
     total_fat = 0
-
     for meal in meals:
         for entry in meal.entries:
             total_calories += entry.quantity * entry.food.calories
             total_protein += entry.quantity * entry.food.protein
             total_carbs += entry.quantity * entry.food.carbs
             total_fat += entry.quantity * entry.food.fat
-
-    
     return {
         "calories": total_calories,
         "protein": total_protein,
         "carbs": total_carbs,
         "fat": total_fat,
     }
-
 
 @app.get("/stats/today")
 def get_today_stats(db: Session = Depends(get_db)):
@@ -109,3 +98,47 @@ def get_week_stats(db: Session = Depends(get_db)):
     today = datetime.now(timezone.utc).date()
     last_week = today - timedelta(weeks=1)
     return calculate_nutrition_totals(last_week, db)
+
+@app.delete("/foods/{food_id}")
+def delete_food(food_id: int, db: Session = Depends(get_db)):
+    food = db.query(models.Food).filter(models.Food.id == food_id).first()
+    if food is None:
+        raise HTTPException(status_code=404, detail="Food not found")
+    
+    existing_entry = db.query(models.MealEntry).filter(models.MealEntry.food_id == food_id).first()
+    if existing_entry is not None:
+        raise HTTPException(status_code=409, detail="Meals have these foods in it, Delete them first to delete this food")
+
+    db.delete(food)
+    db.commit()
+    return {"message": "Food Deleted"}
+
+@app.delete("/meals/{meal_id}")
+def delete_meal(meal_id: int, db: Session = Depends(get_db)):
+    meal = db.query(models.Meal).filter(models.Meal.id == meal_id).first()
+    if meal is None:
+        raise HTTPException(status_code=404, detail="Meal not found")
+
+
+    db.delete(meal)
+    db.commit()
+    return {"message": "Meal Deleted"}
+
+
+@app.put("/foods/{food_id}", response_model=schemas.FoodOut)
+def update_food(food_id: int, updated_food: schemas.FoodCreate, db: Session = Depends(get_db)):
+    food = db.query(models.Food).filter(models.Food.id == food_id).first()
+
+    if food is None:
+        raise HTTPException(status_code=404, detail="Food not found")
+
+    food.name = updated_food.name
+    food.calories = updated_food.calories
+    food.protein = updated_food.protein
+    food.carbs = updated_food.carbs
+    food.fat = updated_food.fat
+    
+    db.commit()
+    db.refresh(food)
+
+    return food
