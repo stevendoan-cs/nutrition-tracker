@@ -1,7 +1,9 @@
+const API_BASE = "https://nutrition-tracker-api-ir8r.onrender.com";
+
 let currentParsedItems = [];
 
 function loadFoods() {
-  fetch("http://127.0.0.1:8000/foods")
+  fetch(API_BASE + "/foods")
     .then(response => response.json())
     .then(data => {
       const foodList = document.getElementById("food-list");
@@ -22,7 +24,7 @@ function addFood() {
     fat: Number(document.getElementById("input-fat").value)
   };
 
-  fetch("http://127.0.0.1:8000/foods", {
+  fetch(API_BASE + "/foods", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newFood)
@@ -53,7 +55,7 @@ function logMeal() {
         items: newItems
     };
 
-  fetch("http://127.0.0.1:8000/meals", {
+  fetch(API_BASE + "/meals", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mealData)
@@ -65,7 +67,7 @@ function logMeal() {
 }
 
 function loadStats() {
-  fetch("http://127.0.0.1:8000/stats/today")
+  fetch(API_BASE + "/stats/today")
     .then(response => response.json())
     .then(data => {
       document.getElementById("stat-calories").textContent = data.calories;
@@ -78,7 +80,7 @@ function loadStats() {
 function parseMeal() {
   const text = document.getElementById("ai-text").value;
 
-  fetch("http://127.0.0.1:8000/parse-meal?text=" + encodeURIComponent(text), {
+  fetch(API_BASE + "/parse-meal?text=" + encodeURIComponent(text), {
     method: "POST"
   })
     .then(response => response.json())
@@ -107,7 +109,7 @@ function confirmMeal() {
     }))
   };
 
-  fetch("http://127.0.0.1:8000/meals", {
+  fetch(API_BASE + "/meals", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mealData)
