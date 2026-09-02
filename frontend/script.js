@@ -1,3 +1,5 @@
+let currentParsedItems = [];
+
 function loadFoods() {
   fetch("http://127.0.0.1:8000/foods")
     .then(response => response.json())
@@ -73,5 +75,49 @@ function loadStats() {
     });
 }
 
-loadFoods();
-loadStats();
+function parseMeal() {
+  const text = document.getElementById("ai-text").value;
+
+  fetch("http://127.0.0.1:8000/parse-meal?text=" + encodeURIComponent(text), {
+    method: "POST"
+  })
+    .then(response => response.json())
+    .then(data => {
+      currentParsedItems = data.items;
+
+      const preview = document.getElementById("parsed-preview");
+      preview.innerHTML = "";
+
+      data.items.forEach(item => {
+        const line = document.createElement("p");
+        line.textContent = item.quantity + "x " + item.name;
+        preview.appendChild(line);
+      });
+
+      document.getElementById("confirm-btn").style.display = "inline";
+    });
+}
+
+function confirmMeal() {
+  const mealData = {
+    meal_type: "meal",
+    items: currentParsedItems.map(item => ({
+      food_id: item.food_id,
+      quantity: item.quantity
+    }))
+  };
+
+  fetch("http://127.0.0.1:8000/meals", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(mealData)
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log("meal logged", data);
+      document.getElementById("parsed-preview").innerHTML = "";
+      document.getElementById("confirm-btn").style.display = "none";
+      document.getElementById("ai-text").value = "";
+      loadStats();
+    });
+}

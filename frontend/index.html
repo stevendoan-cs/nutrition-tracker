@@ -33,6 +33,13 @@
 
 <button onclick="logMeal()">Log Meal</button>
 
+<h2>AI Meal Parser</h2>
+<input id="ai-text" placeholder="e.g. 2 eggs, toast, and a banana" style="width: 300px;">
+<button onclick="parseMeal()">Parse</button>
+
+<div id="parsed-preview"></div>
+<button id="confirm-btn" style="display: none;" onclick="confirmMeal()">Confirm & Log Meal</button>
+
 <h2>Today's Stats</h2>
     <p>Calories: <span id="stat-calories"></span></p>
     <p>Protein: <span id="stat-protein"></span>g</p>

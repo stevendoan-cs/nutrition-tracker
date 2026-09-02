@@ -6,6 +6,13 @@ import schemas
 from database import engine, get_db
 from datetime import datetime, timezone, timedelta
 from fastapi.middleware.cors import CORSMiddleware
+import json
+import os
+from dotenv import load_dotenv
+from anthropic import Anthropic
+
+load_dotenv()
+ai_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -142,3 +149,68 @@ def update_food(food_id: int, updated_food: schemas.FoodCreate, db: Session = De
     db.refresh(food)
 
     return food
+
+
+def find_or_create_food(name: str, calories: float, protein: float, carbs: float, fat: float, db: Session):
+    existing = db.query(models.Food).filter(models.Food.name.ilike(name)).first()
+    if existing is not None:
+        return existing.id
+
+    new_food = models.Food(
+        name = name,
+        calories = calories,
+        protein = protein,
+        carbs = carbs,
+        fat = fat
+    )
+    db.add(new_food)
+    db.commit()
+    db.refresh(new_food)
+
+    return new_food.id
+
+
+@app.post("/parse-meal")
+def parse_meal(text: str, db: Session = Depends(get_db)):
+    prompt = f"""Extract each food item from this meal description. For each food, provide your best estimate of its nutrition per serving. Use simple, singular, lowercase food names (e.g. "egg" not "Eggs" or "eggs").
+
+Meal description: "{text}"
+
+Respond with ONLY valid JSON, no other text, in exactly this format:
+[
+  {{"name": "food name", "calories": 100, "protein": 10, "carbs": 20, "fat": 5, "quantity": 1}}
+]
+"""
+    response = ai_client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    raw_text = response.content[0].text
+    cleaned_text = raw_text.strip()
+    if cleaned_text.startswith("```"):
+        cleaned_text = cleaned_text.split("```")[1]
+        if cleaned_text.startswith("json"):
+            cleaned_text = cleaned_text[4:]
+        cleaned_text = cleaned_text.strip()
+
+    parsed_data = json.loads(cleaned_text)
+
+    items = []
+    for item in parsed_data:
+        food_id = find_or_create_food(
+            name=item["name"],
+            calories=item["calories"],
+            protein=item["protein"],
+            carbs=item["carbs"],
+            fat=item["fat"],
+            db=db,
+        )
+        items.append({
+    "food_id": food_id,
+    "quantity": item["quantity"],
+    "name": item["name"],
+})
+
+    return {"items": items}
