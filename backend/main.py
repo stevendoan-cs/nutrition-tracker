@@ -20,7 +20,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://nutrition-tracker-azure-nine.vercel.app"],
+    allow_origins=[
+        "https://nutrition-tracker-azure-nine.vercel.app",
+        "http://127.0.0.1:5500",
+    ]
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -215,3 +218,10 @@ Respond with ONLY valid JSON, no other text, in exactly this format:
 })
 
     return {"items": items}
+
+@app.get("/foods/by-name/{name}")
+def get_food_by_name(name: str, db: Session = Depends(get_db)):
+    food = db.query(models.Food).filter(models.Food.name.ilike(name)).first()
+    if food is None:
+        raise HTTPException(status_code=404, detail=f"No food named '{name}' found. Add it first.")
+    return {"food_id": food.id}
