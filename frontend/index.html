@@ -1,55 +1,81 @@
-<!DOCTYPE html>
-<html>
 <head>
   <title>Nutrition Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <h1>Foods</h1>
+  <div class="container">
+    <h1>Nutrition Tracker</h1>
+    <p class="tagline">Log meals by hand, or just describe what you ate.</p>
 
-  <h2>Add a Food</h2>
-    <input id="input-name" placeholder="name">
-    <input id="input-calories" placeholder="calories" type="number">
-    <input id="input-protein" placeholder="protein" type="number">
-    <input id="input-carbs" placeholder="carbs" type="number">
-    <input id="input-fat" placeholder="fat" type="number">
-    <button onclick="addFood()">Add Food</button>
+    <section>
+      <h2>Today</h2>
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="stat-value" id="stat-calories"></span>
+          <span class="stat-label">calories</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-protein"></span>
+          <span class="stat-label">protein (g)</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-carbs"></span>
+          <span class="stat-label">carbs (g)</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-fat"></span>
+          <span class="stat-label">fat (g)</span>
+        </div>
+      </div>
+    </section>
 
+    <section>
+      <h2>Describe a Meal</h2>
+      <input id="ai-text" placeholder="e.g. 2 eggs, toast, and a banana" style="width: 100%;">
+      <div style="margin-top: 8px;">
+        <button onclick="parseMeal()">Parse</button>
+      </div>
+      <div id="parsed-preview" style="margin-top: 16px;"></div>
+      <button id="confirm-btn" style="display: none; margin-top: 8px;" onclick="confirmMeal()">Confirm &amp; Log Meal</button>
+    </section>
 
-  <h2>Log a Meal</h2>
-<input id="meal-type" placeholder="meal type (e.g. breakfast)">
+    <section>
+      <h2>Log a Meal Manually</h2>
+      <div class="row">
+        <input id="item-food-id-1" placeholder="food id" type="number" style="width: 90px;">
+        <input id="item-quantity-1" placeholder="qty" type="number" style="width: 70px;">
+      </div>
+      <div class="row">
+        <input id="item-food-id-2" placeholder="food id" type="number" style="width: 90px;">
+        <input id="item-quantity-2" placeholder="qty" type="number" style="width: 70px;">
+      </div>
+      <div class="row">
+        <input id="item-food-id-3" placeholder="food id" type="number" style="width: 90px;">
+        <input id="item-quantity-3" placeholder="qty" type="number" style="width: 70px;">
+      </div>
+      <button onclick="logMeal()">Log Meal</button>
+    </section>
 
-<div>
-  <input id="item-food-id-1" placeholder="food id" type="number">
-  <input id="item-quantity-1" placeholder="quantity" type="number">
-</div>
-<div>
-  <input id="item-food-id-2" placeholder="food id" type="number">
-  <input id="item-quantity-2" placeholder="quantity" type="number">
-</div>
-<div>
-  <input id="item-food-id-3" placeholder="food id" type="number">
-  <input id="item-quantity-3" placeholder="quantity" type="number">
-</div>
+    <section>
+      <h2>Add a Food</h2>
+      <div class="row">
+        <input id="input-name" placeholder="name">
+        <input id="input-calories" placeholder="calories" type="number" style="width: 100px;">
+        <input id="input-protein" placeholder="protein" type="number" style="width: 100px;">
+        <input id="input-carbs" placeholder="carbs" type="number" style="width: 100px;">
+        <input id="input-fat" placeholder="fat" type="number" style="width: 100px;">
+      </div>
+      <button onclick="addFood()">Add Food</button>
+    </section>
 
-<button onclick="logMeal()">Log Meal</button>
-
-<h2>AI Meal Parser</h2>
-<input id="ai-text" placeholder="e.g. 2 eggs, toast, and a banana" style="width: 300px;">
-<button onclick="parseMeal()">Parse</button>
-
-<div id="parsed-preview"></div>
-<button id="confirm-btn" style="display: none;" onclick="confirmMeal()">Confirm & Log Meal</button>
-
-<h2>Today's Stats</h2>
-    <p>Calories: <span id="stat-calories"></span></p>
-    <p>Protein: <span id="stat-protein"></span>g</p>
-    <p>Carbs: <span id="stat-carbs"></span>g</p>
-    <p>Fat: <span id="stat-fat"></span>g</p>
-
-
-  <ul id="food-list"></ul>
-
+    <section>
+      <h2>Foods</h2>
+      <ul id="food-list"></ul>
+    </section>
+  </div>
 
   <script src="script.js"></script>
 </body>
-</html>

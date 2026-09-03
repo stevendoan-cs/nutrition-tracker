@@ -46,8 +46,9 @@ def food_create(food: schemas.FoodCreate, db: Session = Depends(get_db)):
 
 @app.post("/meals", response_model=schemas.MealOut)
 def create_meal(meal: schemas.MealCreate, db: Session = Depends(get_db)):
+    meal_type_value = meal.meal_type if meal.meal_type else "meal"
     new_meal = models.Meal(
-        meal_type = meal.meal_type
+        meal_type=meal_type_value
     )
     db.add(new_meal)
     db.commit()

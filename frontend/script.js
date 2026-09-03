@@ -36,7 +36,6 @@ function addFood() {
 }
 
 function logMeal() {
-    const mealType = document.getElementById("meal-type").value;
     const newItems = [];
 
     for (i = 1; i < 4; i++){
@@ -50,10 +49,7 @@ function logMeal() {
         }
     }
 
-    const mealData = {
-        meal_type: mealType,
-        items: newItems
-    };
+    const mealData = { items: newItems };
 
   fetch(API_BASE + "/meals", {
     method: "POST",
@@ -102,7 +98,6 @@ function parseMeal() {
 
 function confirmMeal() {
   const mealData = {
-    meal_type: "meal",
     items: currentParsedItems.map(item => ({
       food_id: item.food_id,
       quantity: item.quantity

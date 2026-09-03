@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class FoodCreate(BaseModel):
     # fields a client sends when creating a food
@@ -27,7 +28,7 @@ class MealEntryCreate(BaseModel):
     
 
 class MealCreate(BaseModel):
-    meal_type: str
+    meal_type: Optional[str] = None
     items: list[MealEntryCreate]
     
 class MealEntryOut(BaseModel):
