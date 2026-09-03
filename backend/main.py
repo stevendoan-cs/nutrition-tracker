@@ -23,7 +23,7 @@ app.add_middleware(
     allow_origins=[
         "https://nutrition-tracker-azure-nine.vercel.app",
         "http://127.0.0.1:5500",
-    ]
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
