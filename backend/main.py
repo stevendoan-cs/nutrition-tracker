@@ -80,25 +80,30 @@ def get_meal(meal_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Meal not found")
     return meal
 
-def calculate_nutrition_totals(start_date, db: Session):
-    meals = db.query(models.Meal).filter(models.Meal.date >= start_date).all()
+def calculate_nutrition_totals(start_date, db: Session, end_date=None):
+    query = db.query(models.Meal).filter(models.Meal.date >= start_date)
+    if end_date:
+        query = query.filter(models.Meal.date < end_date)
+    meals = query.all()
+
     total_calories = 0
     total_protein = 0
     total_carbs = 0
     total_fat = 0
+
     for meal in meals:
         for entry in meal.entries:
             total_calories += entry.quantity * entry.food.calories
             total_protein += entry.quantity * entry.food.protein
             total_carbs += entry.quantity * entry.food.carbs
             total_fat += entry.quantity * entry.food.fat
+
     return {
         "calories": total_calories,
         "protein": total_protein,
         "carbs": total_carbs,
         "fat": total_fat,
     }
-
 @app.get("/stats/today")
 def get_today_stats(db: Session = Depends(get_db)):
     today = datetime.now(timezone.utc).date()
@@ -109,6 +114,33 @@ def get_week_stats(db: Session = Depends(get_db)):
     today = datetime.now(timezone.utc).date()
     last_week = today - timedelta(weeks=1)
     return calculate_nutrition_totals(last_week, db)
+
+@app.get("/stats/{date_str}")
+def get_day_stats(date_str: str, db: Session = Depends(get_db)):
+    try:
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM-DD format")
+
+    next_day = target_date + timedelta(days=1)
+    return calculate_nutrition_totals(target_date, db, end_date=next_day)
+
+
+@app.get("/meals/by-date/{date_str}", response_model=list[schemas.MealOut])
+def get_meals_by_date(date_str: str, db: Session = Depends(get_db)):
+    try:
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Date must be in YYYY-MM-DD format")
+
+    next_day = target_date + timedelta(days=1)
+    meals = db.query(models.Meal).filter(
+        models.Meal.date >= target_date,
+        models.Meal.date < next_day
+    ).all()
+    return meals
+
+
 
 @app.delete("/foods/{food_id}")
 def delete_food(food_id: int, db: Session = Depends(get_db)):

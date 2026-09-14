@@ -7,14 +7,35 @@ function loadFoods() {
     .then(response => response.json())
     .then(data => {
       const foodList = document.getElementById("food-list");
+      foodList.innerHTML = "";
+
       data.forEach(food => {
         const listItem = document.createElement("li");
-        listItem.textContent = food.name + " - " + food.calories + " calories " + food.protein + " protein";
+        listItem.textContent = food.name + " - " + food.calories + " calories " + food.protein + " protein ";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = function () {
+          deleteFood(food.id);
+        };
+        listItem.appendChild(deleteBtn);
+
         foodList.appendChild(listItem);
       });
     });
 }
 
+async function deleteFood(foodId) {
+  const response = await fetch(API_BASE + "/foods/" + foodId, { method: "DELETE" });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    alert(errorData.detail);
+    return;
+  }
+
+  loadFoods();
+}
 function addFood() {
   const newFood = {
     name: document.getElementById("input-name").value.trim(),
@@ -139,6 +160,41 @@ function confirmMeal() {
       document.getElementById("ai-text").value = "";
       loadStats();
     });
+}
+
+async function viewDate() {
+  const dateStr = document.getElementById("view-date").value;
+  if (!dateStr) {
+    alert("Pick a date first.");
+    return;
+  }
+
+  const statsResponse = await fetch(API_BASE + "/stats/" + dateStr);
+  const stats = await statsResponse.json();
+
+  const mealsResponse = await fetch(API_BASE + "/meals/by-date/" + dateStr);
+  const meals = await mealsResponse.json();
+
+  const resultsDiv = document.getElementById("day-results");
+  resultsDiv.innerHTML = "";
+
+  const statsLine = document.createElement("p");
+  statsLine.textContent = stats.calories + " cal, " + stats.protein + "g protein, " + stats.carbs + "g carbs, " + stats.fat + "g fat";
+  resultsDiv.appendChild(statsLine);
+
+  if (meals.length === 0) {
+    const noneLine = document.createElement("p");
+    noneLine.textContent = "No meals logged this day.";
+    resultsDiv.appendChild(noneLine);
+    return;
+  }
+
+  meals.forEach(meal => {
+    const mealBlock = document.createElement("p");
+    const foodStrings = meal.entries.map(entry => entry.quantity + "x " + entry.food.name);
+    mealBlock.textContent = meal.meal_type + ": " + foodStrings.join(", ");
+    resultsDiv.appendChild(mealBlock);
+  });
 }
 
 loadFoods();
