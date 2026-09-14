@@ -164,3 +164,7 @@ ul {
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+#food-list button {
+  margin-left: 12px;
+}
