@@ -35,31 +35,53 @@ function addFood() {
   });
 }
 
-function logMeal() {
-    const newItems = [];
+async function logMeal() {
+  const rows = [];
+  for (let i = 1; i < 4; i++) {
+    const nameValue = document.getElementById("item-food-name-" + i).value.trim();
+    const quantityValue = document.getElementById("item-quantity-" + i).value;
+    if (nameValue !== "") {
+      rows.push({ name: nameValue, quantity: Number(quantityValue) });
+    }
+  }
 
-    for (i = 1; i < 4; i++){
-        const foodIdValue = document.getElementById("item-food-id-" + i).value;
-        if (foodIdValue !== "") {
-            const newMealEntry = {
-                food_id: Number(document.getElementById("item-food-id-" + i).value),
-                quantity: Number(document.getElementById("item-quantity-" + i).value)
-            }
-            newItems.push(newMealEntry);
-        }
+  if (rows.length === 0) {
+    alert("Add at least one food.");
+    return;
+  }
+
+  const newItems = [];
+
+  for (const row of rows) {
+    const response = await fetch(API_BASE + "/foods/by-name/" + encodeURIComponent(row.name));
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(errorData.detail);
+      return;
     }
 
-    const mealData = { items: newItems };
+    const data = await response.json();
+    newItems.push({ food_id: data.food_id, quantity: row.quantity });
+  }
+
+  const mealData = { items: newItems };
 
   fetch(API_BASE + "/meals", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mealData)
   })
-  .then(response => {
-    console.log("meal added");
-    loadStats();
-  });
+    .then(response => {
+      console.log("meal added");
+      loadStats();
+      document.getElementById("item-food-name-1").value = "";
+      document.getElementById("item-quantity-1").value = "";
+      document.getElementById("item-food-name-2").value = "";
+      document.getElementById("item-quantity-2").value = "";
+      document.getElementById("item-food-name-3").value = "";
+      document.getElementById("item-quantity-3").value = "";
+    });
 }
 
 function loadStats() {
@@ -118,3 +140,6 @@ function confirmMeal() {
       loadStats();
     });
 }
+
+loadFoods();
+loadStats();
