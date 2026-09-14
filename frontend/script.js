@@ -11,7 +11,7 @@ function loadFoods() {
 
       data.forEach(food => {
         const listItem = document.createElement("li");
-        listItem.textContent = food.name + " - " + food.calories + " calories " + food.protein + " protein ";
+        listItem.textContent = food.name + " - " + food.calories + " cal, " + food.protein + "g protein, " + food.carbs + "g carbs, " + food.fat + "g fat";
 
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
